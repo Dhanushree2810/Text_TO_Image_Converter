@@ -1,56 +1,39 @@
-import http.server
-import webbrowser
-import json
+from flask import Flask, request, jsonify, send_from_directory
 from core.api import generate
 from core.safety import safe
-def load_html():
-    with open("templates/index.html", "r", encoding="utf-8") as f:
-        return f.read()
+import os
 
-class Handler(http.server.BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header("Content-type","text/html")
-        self.end_headers()
-        self.wfile.write(load_html().encode())
+app = Flask(__name__, template_folder="templates")
 
-    def do_POST(self):
-        length = int(self.headers["Content-Length"])
-        data   = json.loads(self.rfile.read(length))
+@app.route("/")
+def home():
+    return send_from_directory("templates", "index.html")
 
-        key    = data.get("key","").strip()
-        prompt = data.get("prompt","").strip()
-        neg    = data.get("neg","").strip()
+@app.route("/generate", methods=["POST"])
+def generate_image():
+    data   = request.json
+    key    = data.get("key", "").strip()
+    prompt = data.get("prompt", "").strip()
+    neg    = data.get("neg", "").strip()
 
-        if not key or not prompt:
-            return self._send({"error":"Missing token or prompt"})
-        if not key.startswith("hf_"):
-            return self._send({"error":"Token must start with hf_"})
-        if not safe(prompt):
-            return self._send({"error":"🚫 Blocked by NSFW filter!"})
+    if not prompt:
+        return jsonify({"error": "Missing prompt"})
+    if not safe(prompt):
+        return jsonify({"error": "Blocked by NSFW filter!"})
 
-        import os
-        img, result = generate(os.environ.get("HF_TOKEN"), prompt, neg)
+    token = key or os.environ.get("HF_TOKEN", "")
 
-        if img:
-            self._send({"image": img, "model": result})
-        else:
-            self._send({"error": result})
+    if not token:
+        return jsonify({"error": "No token! Enter hf_ token or set HF_TOKEN on Render."})
 
-    def _send(self, obj):
-        body = json.dumps(obj).encode()
-        self.send_response(200)
-        self.send_header("Content-type","application/json")
-        self.send_header("Content-Length",len(body))
-        self.end_headers()
-        self.wfile.write(body)
+    print(f"\n📝 Prompt: {prompt[:60]}...")
+    img, result = generate(token, prompt, neg)
 
-    def log_message(self, *a): pass
-
+    if img:
+        return jsonify({"image": img, "model": result})
+    else:
+        return jsonify({"error": result})
 
 if __name__ == "__main__":
-    import os
-    PORT = int(os.environ.get("PORT", 8080))
-    print(f"Open: http://localhost:{PORT}")
-    webbrowser.open(f"http://localhost:{PORT}")
-    http.server.HTTPServer(("", PORT), Handler).serve_forever()
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)

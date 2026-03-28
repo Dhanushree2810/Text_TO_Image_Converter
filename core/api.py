@@ -1,27 +1,37 @@
-import requests
 import base64
+import io
+from huggingface_hub import InferenceClient
 
-API_URL = "https://router.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+MODELS = [
+    "black-forest-labs/FLUX.1-schnell",
+    "stabilityai/stable-diffusion-2-1",
+    "runwayml/stable-diffusion-v1-5",
+]
 
 def generate(token, prompt, neg_prompt):
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
+    # token= is the correct parameter name
+    client = InferenceClient(token=token)
+    last_error = "Unknown error"
 
-    payload = {
-        "inputs": prompt
-    }
+    for model in MODELS:
+        print(f"  Trying: {model}")
+        try:
+            image = client.text_to_image(
+                prompt=prompt,
+                model=model,
+                negative_prompt=neg_prompt or "blurry, low quality",
+                width=512,
+                height=512,
+            )
+            buf = io.BytesIO()
+            image.save(buf, format="PNG")
+            img_b64 = base64.b64encode(buf.getvalue()).decode()
+            print(f"  ✅ Success: {model}")
+            return img_b64, model
 
-    try:
-        response = requests.post(API_URL, headers=headers, json=payload)
+        except Exception as e:
+            last_error = str(e)
+            print(f"  ❌ {model}: {last_error[:80]}")
+            continue
 
-        if response.status_code != 200:
-            return None, response.text
-
-        image_bytes = response.content
-        img_b64 = base64.b64encode(image_bytes).decode()
-
-        return img_b64, "stable-diffusion-v1-5"
-
-    except Exception as e:
-        return None, str(e)
+    return None, f"All models failed. Error: {last_error[:150]}"

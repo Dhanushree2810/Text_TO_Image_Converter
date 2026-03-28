@@ -1,7 +1,4 @@
-# ============================================================
-# HTML PAGE
-# ============================================================
-HTML_PAGE = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -57,13 +54,10 @@ HTML_PAGE = """<!DOCTYPE html>
     <div class="card">
       <label>🔑 Hugging Face Token (hf_...)</label>
       <input type="password" id="apiKey" placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxx" />
-
       <label>📝 Describe your image</label>
-      <textarea id="prompt" placeholder="A magical forest with glowing mushrooms and fairies, vibrant, cartoon style, highly detailed..."></textarea>
-
+      <textarea id="prompt" placeholder="A magical forest with glowing mushrooms and fairies, vibrant, cartoon style..."></textarea>
       <label>🚫 Negative Prompt</label>
       <textarea id="neg" style="min-height:55px;">blurry, low quality, watermark, deformed, ugly, text</textarea>
-
       <label>🎨 Style</label>
       <select id="style">
         <option value="">None</option>
@@ -75,11 +69,9 @@ HTML_PAGE = """<!DOCTYPE html>
         <option value=", oil painting, brush strokes">Oil Painting</option>
         <option value=", watercolor, soft colors">Watercolor</option>
       </select>
-
       <span class="badge">✓ NSFW Content Filter Active</span>
       <button class="btn" id="btn" onclick="go()">✦ Generate Image</button>
     </div>
-
     <div class="card">
       <div class="imgbox">
         <div class="ph" id="ph">
@@ -106,9 +98,7 @@ async function go(){
   const p=document.getElementById('prompt').value.trim();
   const n=document.getElementById('neg').value.trim();
   const st=document.getElementById('style').value;
-  if(!key) return show('err','⚠ Enter your Hugging Face token!');
-  if(!p)   return show('err','⚠ Enter a prompt!');
-  if(!key.startsWith('hf_')) return show('err','⚠ Token must start with hf_');
+  if(!p) return show('err','⚠ Enter a prompt!');
   if(BAD.some(w=>p.toLowerCase().includes(w))) return show('err','🚫 Blocked by NSFW filter!');
   loading(true);
   show('info','⏳ Generating... please wait up to 60 seconds');
@@ -137,4 +127,4 @@ function show(cls,txt){const e=document.getElementById('msg');e.className=cls;e.
 function dl(){const a=document.createElement('a');a.href='data:image/png;base64,'+document.getElementById('dl').dataset.b;a.download='dreamforge-'+Date.now()+'.png';a.click();}
 </script>
 </body>
-</html>"""
+</html>
