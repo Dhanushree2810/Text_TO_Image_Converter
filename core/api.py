@@ -3,10 +3,7 @@ import base64
 import io
 
 MODELS = [
-    "black-forest-labs/FLUX.1-schnell",
-    "black-forest-labs/FLUX.1-dev",
-    "stabilityai/stable-diffusion-3-medium-diffusers",
-    "stabilityai/stable-diffusion-2-1",
+    "stabilityai/stable-diffusion-2-1"
 ]
 
 def generate(token, prompt, neg_prompt):
