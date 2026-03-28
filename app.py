@@ -48,7 +48,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    PORT = 8080
+    import os
+    PORT = int(os.environ.get("PORT", 8080))
     print(f"Open: http://localhost:{PORT}")
     webbrowser.open(f"http://localhost:{PORT}")
     http.server.HTTPServer(("", PORT), Handler).serve_forever()
