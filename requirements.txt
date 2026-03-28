@@ -3,3 +3,8 @@ gunicorn
 Pillow
 flask-cors
 huggingface_hub
+diffusers
+transformers
+torch
+accelerate
+safetensors
