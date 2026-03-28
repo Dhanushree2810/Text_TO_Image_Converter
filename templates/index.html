@@ -1,0 +1,140 @@
+# ============================================================
+# HTML PAGE
+# ============================================================
+HTML_PAGE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DreamForge — Text to Image AI</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0f; color: #e8e8f0; font-family: Arial, sans-serif; padding: 40px 20px; }
+  .container { max-width: 980px; margin: 0 auto; }
+  h1 { text-align: center; font-size: 2.4rem; color: #c084fc; margin-bottom: 6px; }
+  .sub { text-align: center; color: #6b6b8a; margin-bottom: 20px; font-size: 15px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media(max-width:680px){ .grid{ grid-template-columns:1fr; } }
+  .card { background: #12121a; border: 1px solid #2a2a3d; border-radius: 16px; padding: 22px; }
+  label { display:block; font-size:12px; color:#6b6b8a; margin: 14px 0 5px; }
+  input, textarea, select { width:100%; background:#1c1c28; border:1px solid #2a2a3d; border-radius:9px; color:#e8e8f0; font-size:14px; padding:11px; outline:none; font-family:Arial,sans-serif; }
+  textarea { min-height:90px; resize:vertical; }
+  input:focus,textarea:focus,select:focus { border-color:#c084fc; }
+  .btn { width:100%; padding:14px; background:linear-gradient(135deg,#c084fc,#a855f7); border:none; border-radius:11px; color:#fff; font-size:15px; font-weight:bold; cursor:pointer; margin-top:18px; }
+  .btn:hover{ opacity:.9; } .btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .imgbox { background:#1c1c28; border:1px solid #2a2a3d; border-radius:11px; aspect-ratio:1; display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:12px; }
+  .imgbox img { width:100%; height:100%; object-fit:cover; }
+  .ph { text-align:center; color:#6b6b8a; padding:30px; }
+  .ph div { font-size:2.5rem; margin-bottom:10px; }
+  #spinner { display:none; flex-direction:column; align-items:center; padding:30px; }
+  .ring { width:44px; height:44px; border:3px solid #2a2a3d; border-top-color:#c084fc; border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  #spinner p { color:#6b6b8a; font-size:13px; margin-top:10px; text-align:center; }
+  #msg { padding:11px; border-radius:9px; font-size:13px; margin-top:10px; display:none; }
+  .ok  { background:rgba(52,211,153,.1); border:1px solid rgba(52,211,153,.3); color:#34d399; display:block!important; }
+  .err { background:rgba(248,113,113,.1); border:1px solid rgba(248,113,113,.3); color:#f87171; display:block!important; }
+  .info{ background:rgba(192,132,252,.1); border:1px solid rgba(192,132,252,.3); color:#c084fc; display:block!important; }
+  .dlbtn { width:100%; padding:10px; background:transparent; border:1px solid #2a2a3d; border-radius:9px; color:#e8e8f0; font-size:14px; cursor:pointer; display:none; margin-top:6px; }
+  .dlbtn:hover{ border-color:#c084fc; color:#c084fc; }
+  .badge { background:rgba(52,211,153,.08); border:1px solid rgba(52,211,153,.2); border-radius:7px; padding:5px 11px; font-size:11px; color:#34d399; margin-top:10px; display:inline-block; }
+  .notice { background:rgba(251,191,36,.06); border:1px solid rgba(251,191,36,.2); border-radius:9px; padding:14px; font-size:12px; color:#fbbf24; margin-bottom:16px; line-height:1.8; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🎨 DreamForge</h1>
+  <p class="sub">Text-to-Image Generator — Hugging Face + FLUX</p>
+
+  <div class="notice">
+    🔑 <strong>Get your FREE Hugging Face token:</strong><br>
+    1. Go to <strong>huggingface.co</strong> and log in<br>
+    2. Click your profile → <strong>Settings</strong> → <strong>Access Tokens</strong><br>
+    3. Click <strong>New Token</strong> → Name: anything → Type: <strong>Write</strong> → <strong>Generate</strong><br>
+    4. Copy the <strong>hf_...</strong> token and paste below
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <label>🔑 Hugging Face Token (hf_...)</label>
+      <input type="password" id="apiKey" placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxx" />
+
+      <label>📝 Describe your image</label>
+      <textarea id="prompt" placeholder="A magical forest with glowing mushrooms and fairies, vibrant, cartoon style, highly detailed..."></textarea>
+
+      <label>🚫 Negative Prompt</label>
+      <textarea id="neg" style="min-height:55px;">blurry, low quality, watermark, deformed, ugly, text</textarea>
+
+      <label>🎨 Style</label>
+      <select id="style">
+        <option value="">None</option>
+        <option value=", photorealistic, 8K, DSLR photography">Photorealistic</option>
+        <option value=", digital art, concept art, artstation">Digital Art</option>
+        <option value=", anime style, vibrant colors">Anime</option>
+        <option value=", cinematic, dramatic lighting">Cinematic</option>
+        <option value=", fantasy art, magical, ethereal">Fantasy Art</option>
+        <option value=", oil painting, brush strokes">Oil Painting</option>
+        <option value=", watercolor, soft colors">Watercolor</option>
+      </select>
+
+      <span class="badge">✓ NSFW Content Filter Active</span>
+      <button class="btn" id="btn" onclick="go()">✦ Generate Image</button>
+    </div>
+
+    <div class="card">
+      <div class="imgbox">
+        <div class="ph" id="ph">
+          <div>🖼️</div>
+          <p>Your image appears here</p>
+          <p style="font-size:11px;margin-top:6px;opacity:.6;">Enter prompt and click Generate</p>
+        </div>
+        <div id="spinner">
+          <div class="ring"></div>
+          <p>Generating image...</p>
+          <p style="font-size:11px;color:#4a4a6a;margin-top:6px;">Takes 20–60 seconds</p>
+        </div>
+        <img id="img" src="" style="display:none" />
+      </div>
+      <div id="msg"></div>
+      <button class="dlbtn" id="dl" onclick="dl()">⬇ Download Image</button>
+    </div>
+  </div>
+</div>
+<script>
+const BAD=['nsfw','nude','naked','explicit','porn','xxx','adult content'];
+async function go(){
+  const key=document.getElementById('apiKey').value.trim();
+  const p=document.getElementById('prompt').value.trim();
+  const n=document.getElementById('neg').value.trim();
+  const st=document.getElementById('style').value;
+  if(!key) return show('err','⚠ Enter your Hugging Face token!');
+  if(!p)   return show('err','⚠ Enter a prompt!');
+  if(!key.startsWith('hf_')) return show('err','⚠ Token must start with hf_');
+  if(BAD.some(w=>p.toLowerCase().includes(w))) return show('err','🚫 Blocked by NSFW filter!');
+  loading(true);
+  show('info','⏳ Generating... please wait up to 60 seconds');
+  try{
+    const res=await fetch('/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,prompt:p+st,neg:n})});
+    const d=await res.json();
+    if(d.error){show('err','❌ '+d.error);loading(false);return;}
+    const imgEl=document.getElementById('img');
+    imgEl.src='data:image/png;base64,'+d.image;
+    imgEl.style.display='block';
+    document.getElementById('ph').style.display='none';
+    document.getElementById('spinner').style.display='none';
+    document.getElementById('dl').style.display='block';
+    document.getElementById('dl').dataset.b=d.image;
+    show('ok','✅ Done! Model: '+d.model);
+    loading(false);
+  }catch(e){show('err','❌ '+e.message);loading(false);}
+}
+function loading(on){
+  document.getElementById('btn').disabled=on;
+  document.getElementById('btn').textContent=on?'⏳ Generating...':'✦ Generate Image';
+  if(on){document.getElementById('ph').style.display='none';document.getElementById('img').style.display='none';document.getElementById('spinner').style.display='flex';}
+  else{document.getElementById('spinner').style.display='none';}
+}
+function show(cls,txt){const e=document.getElementById('msg');e.className=cls;e.textContent=txt;}
+function dl(){const a=document.createElement('a');a.href='data:image/png;base64,'+document.getElementById('dl').dataset.b;a.download='dreamforge-'+Date.now()+'.png';a.click();}
+</script>
+</body>
+</html>"""
