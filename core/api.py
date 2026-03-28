@@ -7,7 +7,8 @@ MODELS = [
 ]
 
 def generate(token, prompt, neg_prompt):
-    client = InferenceClient(api_key=token)
+    import os
+    client = InferenceClient(api_key=os.environ.get("HF_TOKEN"))
     last_error = "Unknown error"
 
     for model in MODELS:
