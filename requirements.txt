@@ -2,3 +2,4 @@ Flask
 gunicorn
 Pillow
 flask-cors
+huggingface_hub
