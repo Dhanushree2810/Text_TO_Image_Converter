@@ -1,7 +1,7 @@
 import requests
 import base64
 
-API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+API_URL = "https://router.huggingface.co/models/runwayml/stable-diffusion-v1-5"
 
 def generate(token, prompt, neg_prompt):
     headers = {
