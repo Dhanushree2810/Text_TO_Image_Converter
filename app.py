@@ -29,7 +29,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if not safe(prompt):
             return self._send({"error":"🚫 Blocked by NSFW filter!"})
 
-        img, result = generate(key, prompt, neg)
+        import os
+        img, result = generate(os.environ.get("HF_TOKEN"), prompt, neg)
 
         if img:
             self._send({"image": img, "model": result})

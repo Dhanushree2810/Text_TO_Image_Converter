@@ -1,37 +1,27 @@
-from huggingface_hub import InferenceClient
+import requests
 import base64
-import io
 
-MODELS = [
-    "runwayml/stable-diffusion-v1-5"
-]
+API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
 
 def generate(token, prompt, neg_prompt):
-    import os
-    client = InferenceClient(api_key=os.environ.get("HF_TOKEN"))
-    last_error = "Unknown error"
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
 
-    for model in MODELS:
-        print(f"  Trying: {model}")
-        try:
-            image = client.text_to_image(
-                prompt=prompt,
-                model=model,
-                negative_prompt=neg_prompt or "blurry, low quality",
-                width=512,
-                height=512,
-            )
+    payload = {
+        "inputs": prompt
+    }
 
-            buf = io.BytesIO()
-            image.save(buf, format="PNG")
-            img_b64 = base64.b64encode(buf.getvalue()).decode()
+    try:
+        response = requests.post(API_URL, headers=headers, json=payload)
 
-            print(f"  ✅ Success: {model}")
-            return img_b64, model
+        if response.status_code != 200:
+            return None, response.text
 
-        except Exception as e:
-            last_error = str(e)
-            print(f"  ❌ {model}: {last_error[:80]}")
-            continue
+        image_bytes = response.content
+        img_b64 = base64.b64encode(image_bytes).decode()
 
-    return None, f"All models failed. Last error: {last_error[:150]}"
+        return img_b64, "stable-diffusion-v1-5"
+
+    except Exception as e:
+        return None, str(e)
