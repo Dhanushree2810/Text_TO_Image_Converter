@@ -3,7 +3,7 @@ import base64
 import io
 
 MODELS = [
-    "stabilityai/stable-diffusion-2-1"
+    "runwayml/stable-diffusion-v1-5"
 ]
 
 def generate(token, prompt, neg_prompt):
